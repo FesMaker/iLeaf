@@ -1,0 +1,726 @@
+import SwiftUI
+import AVKit
+
+struct ContentView: View {
+    
+    // AVPlayer for the video background
+    @State private var player: AVPlayer?
+    @State private var isButtonPressed = false
+    @State private var isArrowPressed = false
+    @State private var shouldNavigate = false // State for navigation
+
+    var body: some View {
+        NavigationStack { // Replace NavigationView with NavigationStack
+            ZStack {
+                // Full-screen video background
+                if let player = player {
+                    VideoPlayer(player: player)
+                        .onAppear {
+                            player.play()
+                            player.isMuted = true
+                            player.actionAtItemEnd = .none
+                            // Loop the video
+                            NotificationCenter.default.addObserver(
+                                forName: .AVPlayerItemDidPlayToEndTime,
+                                object: player.currentItem,
+                                queue: .main) { _ in
+                                    player.seek(to: CMTime.zero)
+                                    player.play()
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .ignoresSafeArea() // Ensures video covers entire screen
+                        .aspectRatio(contentMode: .fill) // Ensures the video fills the screen even if cropped
+                } else {
+                    // Fallback if the video does not load
+                    Color.black.ignoresSafeArea()
+                    Text("Video could not load")
+                        .foregroundColor(.white)
+                }
+
+                // Overlay content (logo, text, button)
+                VStack {
+                    Spacer()
+                        .frame(height: UIScreen.main.bounds.height / 4) // Spacing for logo
+                    
+                    // Logo Image (Ensure "4" is the correct asset name)
+                    Image("4")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 150, height: 150) // Logo size
+                    
+                    // App Name below the logo
+                    Text("Welcome to iLeaf App")
+                        .font(Font.custom("San Francisko", size: 25)) // Custom font
+                        .foregroundColor(.white)
+                        .padding(.top, 20)
+
+                    Spacer()
+
+                    // Activation button
+                    Button(action: {
+                        shouldNavigate = true // Trigger navigation
+                    }) {
+                        Text("Push to Start")
+                            .font(Font.custom("San Francisko", size: 22))
+                            .foregroundColor(isButtonPressed ? Color.white : Color(hex: "#794cec")) // Text color: periwinkle by default, white when pressed
+                            .padding(.vertical, 15)
+                            .padding(.horizontal, 40) // Padding to ensure button doesn't reach the screen's edges
+                            .background(isButtonPressed ? Color(hex: "#794cec") : Color.white) // Background changes when pressed
+                            .cornerRadius(20) // Rounded corners
+                            .shadow(radius: 5) // Shadow for button
+                    }
+                    .padding(.bottom, 40) // Padding to ensure button stays above the bottom of the screen
+                    
+                    // Disclaimer text
+                    Text("Version 1.0. for demonstration only")
+                        .font(Font.custom("San Francisko", size: 12)) // Borel font for the disclaimer
+                        .foregroundColor(.white)
+                        .padding(.top, 5)
+
+                    Spacer()
+                        .frame(height: 30) // Adds space between the disclaimer and the bottom of the screen
+                }
+                
+                // Arrow button at the top-right corner
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            isArrowPressed.toggle() // Change arrow color on press
+                            // Add navigation logic here if needed
+                        }) {
+                            Circle()
+                                .strokeBorder(isArrowPressed ? Color(hex: "#794cec") : Color.white, lineWidth: 2)
+                                .frame(width: 40, height: 40)
+                                .overlay(
+                                    Image(systemName: "arrow.right")
+                                        .foregroundColor(isArrowPressed ? Color(hex: "#794cec") : .white) // Arrow color changes when pressed
+                                )
+                        }
+                        .padding(.trailing, 20) // Padding to place it at the edge of the screen
+                    }
+                    .padding(.top, 40) // Padding to avoid the notch
+                    Spacer()
+                }
+            }
+            .onAppear {
+                // Load the video when the view appears
+                if let videoURL = Bundle.main.url(forResource: "Videobackground", withExtension: "mp4") {
+                    player = AVPlayer(url: videoURL)
+                } else {
+                    print("Error: Video file not found.")
+                }
+            }
+            .navigationDestination(isPresented: $shouldNavigate) { // Navigation to Stage1View
+                StageOneView()
+            }
+        }
+    }
+}
+
+// Helper function to use hex colors
+extension Color {
+    init(hex: String) {
+        let scanner = Scanner(string: hex)
+        scanner.currentIndex = hex.startIndex
+        var rgbValue: UInt64 = 0
+        scanner.scanHexInt64(&rgbValue)
+        let r = Double((rgbValue & 0xFF0000) >> 16) / 255.0
+        let g = Double((rgbValue & 0x00FF00) >> 8) / 255.0
+        let b = Double(rgbValue & 0x0000FF) / 255.0
+        self.init(red: r, green: g, blue: b)
+    }
+}
+import SwiftUI
+import AVKit
+
+struct StageOneView: View {
+    @State private var phoneNumber: String = "" // Phone number input field
+    @State private var player: AVPlayer? // AVPlayer for playing the video
+    @State private var shouldNavigate: Bool = false // State for navigation
+
+    var body: some View {
+        NavigationStack { // Use NavigationStack for navigation
+            ZStack {
+                // Full-screen white background
+                Color.white
+                    .ignoresSafeArea()
+
+                VStack {
+                    Spacer()
+                        .frame(height: UIScreen.main.bounds.height / 6) // Spacing for the top
+
+                    // Stage 1 text
+                    Text("STAGE 1: User verification")
+                        .font(Font.custom("San Francisko", size: 22)) // Custom San Francisco font
+                        .foregroundColor(.black)
+                        .padding(.bottom, 20) // Spacing between text and video icon
+
+                    // Video mp4 icon (Cloud technology.mp4) displayed as a video
+                    if let player = player {
+                        VideoPlayer(player: player)
+                            .onAppear {
+                                player.play()
+                                player.isMuted = true
+                                player.actionAtItemEnd = .none
+                                // Loop the video
+                                NotificationCenter.default.addObserver(
+                                    forName: .AVPlayerItemDidPlayToEndTime,
+                                    object: player.currentItem,
+                                    queue: .main) { _ in
+                                        player.seek(to: CMTime.zero)
+                                        player.play()
+                                }
+                            }
+                            .frame(width: 150, height: 150) // Adjust size for icon as needed
+                            .padding(.bottom, 20)
+                    } else {
+                        // Fallback in case video is not found
+                        Image(systemName: "icloud.and.arrow.down")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 150, height: 150) // Placeholder size
+                            .foregroundColor(.gray)
+                            .padding(.bottom, 20)
+                    }
+
+                    // Phone number input field with custom colors
+                    TextField("+ (xxx) xxx-xxxxx", text: $phoneNumber)
+                        .padding()
+                        .background(Color(.systemGray6)) // Custom background color
+                        .foregroundColor(Color(.lightGray)) // Custom text color for entered phone number
+                        .cornerRadius(10)
+                        .keyboardType(.phonePad) // Ensures phone number format
+                        .padding(.horizontal, 40) // Padding to ensure field doesn't touch the screen's edges
+                        .frame(maxWidth: .infinity)
+                        .placeholder(when: phoneNumber.isEmpty) {
+                            Text("+ (xxx) xxx-xxxxx")
+                                .font(Font.custom("San Francisko", size: 1)) // Custom San Francisco font
+                                .foregroundColor(Color(.darkGray)) // Custom placeholder color
+                        }
+
+                    // Disclaimer text
+                    Text("Use only the phone number that was indicated when purchasing the physical case.")
+                        .font(Font.custom("San Francisko", size: 12)) // San Francisco font
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 10)
+                        .padding(.horizontal, 40) // Ensure the disclaimer text has proper padding
+
+                    Spacer() // Pushes content upwards
+
+                    // Verification button
+                    Button(action: {
+                        shouldNavigate = true // Trigger navigation
+                    }) {
+                        Text("Push to Verify")
+                            .font(Font.custom("San Francisko", size: 20))
+                            .foregroundColor(.white) // Button text color is white
+                            .padding(.vertical, 15)
+                            .padding(.horizontal, 50)
+                            .background(Color(.purple)) // Custom button background color
+                            .cornerRadius(20) // Rounded corners for button
+                    }
+                    .padding(.bottom, 40) // Padding to ensure button doesn't touch the bottom of the screen
+                }
+            }
+            .onAppear {
+                // Load the video when the view appears
+                if let videoURL = Bundle.main.url(forResource: "Cloud technology", withExtension: "mp4") {
+                    player = AVPlayer(url: videoURL)
+                } else {
+                    print("Error: Video file not found.")
+                }
+            }
+            .navigationDestination(isPresented: $shouldNavigate) { // Navigation to Stage2View
+                StageTwoView()
+            }
+        }
+    }
+}
+
+// Extension to show a placeholder in TextField
+extension View {
+    func placeholder<Content: View>(
+        when shouldShow: Bool,
+        alignment: Alignment = .leading,
+        @ViewBuilder placeholder: () -> Content
+    ) -> some View {
+        ZStack(alignment: alignment) {
+            if shouldShow {
+                placeholder()
+            }
+            self
+        }
+    }
+}
+import SwiftUI
+import AVKit
+
+struct StageTwoView: View {
+    @State private var uidKey: String = "" // UID key input field
+    @State private var player: AVPlayer? // AVPlayer for playing the video
+    @State private var shouldNavigate: Bool = false // State to trigger navigation to StageThreeView
+
+    var body: some View {
+        ZStack {
+            // Full-screen white background
+            Color.white
+                .ignoresSafeArea()
+            
+            VStack {
+                Spacer()
+                    .frame(height: UIScreen.main.bounds.height / 6) // Spacing for the top
+                
+                // Stage 2 text
+                Text("STAGE 2: Phone case activation")
+                    .font(Font.custom("San Francisko", size: 22)) // Custom San Francisco font
+                    .foregroundColor(.black)
+                    .padding(.bottom, 20) // Spacing between text and video icon
+                
+                // Video mp4 icon (Key.mp4) displayed as a video
+                if let player = player {
+                    VideoPlayer(player: player)
+                        .onAppear {
+                            player.play()
+                            player.isMuted = true
+                            player.actionAtItemEnd = .none
+                            // Loop the video
+                            NotificationCenter.default.addObserver(
+                                forName: .AVPlayerItemDidPlayToEndTime,
+                                object: player.currentItem,
+                                queue: .main) { _ in
+                                    player.seek(to: CMTime.zero)
+                                    player.play()
+                                }
+                        }
+                        .frame(width: 150, height: 150) // Adjust size for icon as needed
+                        .padding(.bottom, 20)
+                } else {
+                    // Fallback in case video is not found
+                    Image(systemName: "key.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 150, height: 150) // Placeholder size
+                        .foregroundColor(.gray)
+                        .padding(.bottom, 20)
+                }
+                
+                // UID key input field with custom colors
+                TextField("************", text: $uidKey)
+                    .multilineTextAlignment(.center) // Centers the text and placeholder
+                    .padding()
+                    .background(Color(.systemGray6)) // Custom background color
+                    .foregroundColor(Color(.lightGray)) // Custom text color for entered UID key
+                    .cornerRadius(10)
+                    .keyboardType(.numberPad) // Ensures number format
+                    .padding(.horizontal, 40) // Padding to ensure field doesn't touch the screen's edges
+                    .frame(maxWidth: .infinity)
+                    .placeholder(when: uidKey.isEmpty) {
+                        Text("************")
+                            .padding()
+                            .font(Font.custom("San Francisko", size: 1)) // Custom San Francisco font
+                            .foregroundColor(Color(.darkGray)) // Custom placeholder color
+                    }
+                
+                // Disclaimer text
+                Text("Do not give the key to anyone.")
+                    .font(Font.custom("San Francisko", size: 12)) // San Francisco font
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 10)
+                    .padding(.horizontal, 40) // Ensure the disclaimer text has proper padding
+                
+                Spacer() // Pushes content upwards
+                
+                // Activation button
+                Button(action: {
+                    // Add key activation logic here
+                    shouldNavigate = true // Trigger navigation to StageThreeView
+                }) {
+                    Text("Push to Activate")
+                        .font(Font.custom("San Francisko", size: 20))
+                        .foregroundColor(.white) // Button text color is white
+                        .padding(.vertical, 15)
+                        .padding(.horizontal, 50)
+                        .background(Color(.purple)) // Custom button background color
+                        .cornerRadius(20) // Rounded corners for button
+                }
+                .padding(.bottom, 40) // Padding to ensure button doesn't touch the bottom of the screen
+            }
+        }
+        .onAppear {
+            // Load the video when the view appears
+            if let videoURL = Bundle.main.url(forResource: "Key", withExtension: "mp4") {
+                player = AVPlayer(url: videoURL)
+            } else {
+                print("Error: Video file not found.")
+            }
+        }
+        .navigationDestination(isPresented: $shouldNavigate) { // Navigation to StageThreeView
+            StageThreeView() // Make sure this view is defined in your project
+        }
+    }
+}
+import SwiftUI
+import AVKit
+
+struct StageThreeView: View {
+    @State private var player: AVPlayer? // AVPlayer for playing the video
+    @State private var agreeToTerms: Bool = false // State for iLeaf terms and conditions
+    @State private var agreeToCommunityRules: Bool = false // State for community rules
+    @State private var agreeToShareGeolocation: Bool = false // State for geolocation sharing
+    @State private var shouldNavigateToUITView: Bool = false // State to trigger navigation to UITView
+
+    var body: some View {
+        ZStack {
+            // Full-screen white background
+            Color.white
+                .ignoresSafeArea()
+
+            VStack {
+                Spacer()
+                    .frame(height: UIScreen.main.bounds.height / 6) // Spacing for the top
+                
+                // Center-align Stage 3 text and icon
+                VStack(alignment: .center) {
+                    Text("STAGE 3: NFT tree activation")
+                        .font(Font.custom("San Francisko", size: 22)) // Custom San Francisco font
+                        .foregroundColor(.black)
+                        .padding(.bottom, 20) // Spacing between text and video icon
+
+                    // Video mp4 icon (Node.mp4) displayed as a video
+                    if let player = player {
+                        VideoPlayer(player: player)
+                            .onAppear {
+                                player.play()
+                                player.isMuted = true
+                                player.actionAtItemEnd = .none
+                                // Loop the video
+                                NotificationCenter.default.addObserver(
+                                    forName: .AVPlayerItemDidPlayToEndTime,
+                                    object: player.currentItem,
+                                    queue: .main) { _ in
+                                        player.seek(to: CMTime.zero)
+                                        player.play()
+                                    }
+                            }
+                            .frame(width: 150, height: 150) // Adjust size for icon as needed
+                            .padding(.bottom, 20)
+                    } else {
+                        // Fallback in case video is not found
+                        Image(systemName: "leaf.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 150, height: 150) // Placeholder size
+                            .foregroundColor(.gray)
+                            .padding(.bottom, 20)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .center) // Center the content
+
+                // Checkboxes and text aligned to the left
+                VStack(alignment: .leading, spacing: 10) {
+                    Toggle(isOn: $agreeToTerms) {
+                        Text("Confirm reading and agreeing to the iLeaf terms and conditions")
+                            .font(Font.custom("San Francisko", size: 15))
+                            .foregroundColor(.black)
+                    }
+                    .toggleStyle(CheckboxToggleStyle())
+
+                    Toggle(isOn: $agreeToCommunityRules) {
+                        Text("Confirm compliance with the community rules")
+                            .font(Font.custom("San Francisko", size: 15))
+                            .foregroundColor(.black)
+                    }
+                    .toggleStyle(CheckboxToggleStyle())
+
+                    Toggle(isOn: $agreeToShareGeolocation) {
+                        Text("To share your own Geolocation")
+                            .font(Font.custom("San Francisko", size: 15))
+                            .foregroundColor(.black)
+                    }
+                    .toggleStyle(CheckboxToggleStyle())
+                }
+                .padding(.horizontal, 40) // Align the checkboxes to the left side
+                
+                Spacer()
+
+                // NFT tree generation button
+                Button(action: {
+                    // Trigger navigation to UITView
+                    shouldNavigateToUITView = true
+                }) {
+                    Text("Generate own NFT tree")
+                        .font(Font.custom("San Francisko", size: 20))
+                        .foregroundColor(.white) // Button text color is white
+                        .padding(.vertical, 15)
+                        .padding(.horizontal, 50)
+                        .background(Color(.purple)) // Custom button background color
+                        .cornerRadius(20) // Rounded corners for button
+                }
+                .padding(.bottom, 40) // Padding to ensure button doesn't touch the bottom of the screen
+            }
+            .frame(maxWidth: .infinity, alignment: .center) // Center align all content
+        }
+        .onAppear {
+            // Load the video when the view appears
+            if let videoURL = Bundle.main.url(forResource: "Node", withExtension: "mp4") {
+                player = AVPlayer(url: videoURL)
+            } else {
+                print("Error: Video file not found.")
+            }
+        }
+        .navigationDestination(isPresented: $shouldNavigateToUITView) { // Navigation to UIF
+            UIFView() // Make sure this view is defined in your project
+        }
+    }
+}
+
+// Custom toggle style for checkboxes
+struct CheckboxToggleStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack {
+            Image(systemName: configuration.isOn ? "checkmark.square.fill" : "square")
+                .foregroundColor(configuration.isOn ? .purple : .gray)
+                .onTapGesture {
+                    configuration.isOn.toggle()
+                }
+            configuration.label
+        }
+    }
+}
+import SwiftUI
+
+struct UIFView: View {
+    @State private var tokens: Int = 27 // Current amount of LeafCoins
+    @State private var waterLevel: Int = 80 // Water level of the tree
+    @State private var fertilizerLevel: Int = 60 // Fertilizer level of the tree
+    @State private var shouldNavigateToWalletView: Bool = false // Navigation trigger for WalletView
+
+    var body: some View {
+        ZStack {
+            // Background layer
+            Image("UIF")
+                .resizable()
+                .padding(.bottom, 50)
+        
+            // Foreground layer with all UI elements
+            VStack {
+                // Top Bar: Profile and Menu Icons
+                HStack {
+                    // Profile Icon
+                    Button(action: {
+                        // Add action for profile
+                    }) {
+                        Image(systemName: "person.circle")
+                            .resizable()
+                            .frame(width: 30, height: 30)
+                            .foregroundColor(.white)
+                            .padding(.leading, 35)
+                            .padding(.top, 70)
+                    }
+
+                    Spacer()
+
+                    // NFT title
+                    Text("Season: Fall")
+                        .font(Font.custom("SanFrancisko", size: 20))
+                        .foregroundColor(.white)
+                        .padding(.top, 65)
+                        .padding(.leading, 10)
+
+                    Spacer()
+
+                    // Menu Icon
+                    Button(action: {
+                        // Add action for menu
+                    }) {
+                        Image(systemName: "line.3.horizontal")
+                            .resizable()
+                            .frame(width: 30, height: 20)
+                            .foregroundColor(.white)
+                            .padding(.trailing, 80)
+                            .padding(.bottom, 20)
+                    }
+                }
+                .padding(.horizontal, 20) // Symmetrical horizontal padding
+                .padding(.top, 30) // Adjust top padding for uniformity
+
+                Spacer()
+
+                // LeafCoins and LeafLinkReward
+                HStack {
+                    // LeafCoins Balance
+                    HStack {
+                        Image(systemName: "leaf.fill")
+                            .foregroundColor(.yellow)
+                            .font(.system(size: 20))
+                            .padding(.leading, 20)
+                            .padding(.bottom, 80)
+
+                        Text("\(tokens) LeafCoins")
+                            .font(Font.custom("SanFrancisko", size: 18))
+                            .foregroundColor(.white)
+                            .padding(.leading, 0)
+                            .padding(.bottom, 80)
+                        
+                    }
+
+                    Spacer()
+
+                    // LeafLinkReward button (to convert leaves into tokens)
+                    Button(action: {
+                        // Add conversion action
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.right.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.system(size: 20))
+
+                            Text("LeafLinkReward")
+                                .font(Font.custom("SanFrancisko", size: 16))
+                                .foregroundColor(.white)
+                        }
+                        .padding(10)
+                        .background(Color.purple)
+                        .cornerRadius(15)
+                        .padding(.trailing, 15)
+                        .padding(.top, -66)
+                    }
+                }
+                .padding(.horizontal, 30) // Symmetrical horizontal padding
+                .padding(.vertical, 10)
+                .padding(.bottom, 600)
+
+                // Bottom Section: Tree care bars (Water & Fertilizer) + Bottom Navigation
+                VStack {
+                    // Tree care bars (Water & Fertilizer)
+                    HStack {
+                        // Water Progress
+                        VStack {
+                            Text("Water Level")
+                                .font(Font.custom("SanFrancisko", size: 14))
+                                .foregroundColor(.white)
+                                .padding(.leading, 100)
+                            ProgressView(value: Double(waterLevel) / 100.0)
+                                .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                                .frame(width: 130)
+                                .padding(.leading, 100)
+                            
+                        }
+
+                        Spacer() // Add spacer between progress bars to balance the layout
+
+                        // Fertilizer Progress
+                        VStack {
+                            Text("Fertilizer Level")
+                                .font(Font.custom("SanFrancisko", size: 14))
+                                .foregroundColor(.white)
+                                .padding(.trailing, 138)
+                            ProgressView(value: Double(fertilizerLevel) / 100.0)
+                                .progressViewStyle(LinearProgressViewStyle(tint: .green))
+                                .frame(width: 130)
+                                .padding(.trailing, 100)
+                        }
+                    }
+                    .padding(.bottom, 20)
+
+                    // Semi-transparent box for Bottom Navigation
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 25)
+                            .fill(Color.black.opacity(0.3)) // Semi-transparent background
+                            .frame(height: 70)
+                            .padding(.horizontal, 60)
+                            .padding(.trailing,19)
+                            .padding(.leading, -10)
+
+                        HStack(spacing: 40) {
+                            // Exchange
+                            Button(action: {
+                                // Add action for Exchange
+                            }) {
+                                VStack {
+                                    Image(systemName: "arrow.trianglehead.2.counterclockwise")
+                                        .resizable()
+                                        .frame(width: 25, height: 30)
+                                        .foregroundColor(.white)
+                                        .padding(.leading, -30)
+
+                                    Text("Exchange")
+                                        .font(Font.custom("SanFrancisko", size: 14))
+                                        .foregroundColor(.white)
+                                        .padding(.leading, -30)
+                                }
+                            }
+
+                            // Wallet Button
+                            Button(action: {
+                                // Trigger navigation to WalletView
+                                shouldNavigateToWalletView = true
+                            }) {
+                                VStack {
+                                    Image(systemName: "wallet.bifold")
+                                        .resizable()
+                                        .frame(width: 25, height: 30)
+                                        .foregroundColor(.white)
+
+                                    Text("Wallet")
+                                        .font(Font.custom("SanFrancisko", size: 14))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            // Navigation logic using .navigationDestination
+                            .navigationDestination(isPresented: $shouldNavigateToWalletView) {
+                                WalletView() // Ensure WalletView is defined in your project
+                            }
+
+                            // NFT shop
+                            Button(action: {
+                                // Add action for NFT shop
+                            }) {
+                                VStack {
+                                    Image(systemName: "cart.badge.plus")
+                                        .resizable()
+                                        .frame(width: 25, height: 30)
+                                        .foregroundColor(.white)
+
+                                    Text("NFT shop")
+                                        .font(Font.custom("SanFrancisko", size: 14))
+                                        .foregroundColor(.white)
+                                }
+                            }
+
+                            // Tools
+                            Button(action: {
+                                // Add action for Tools
+                            }) {
+                                VStack {
+                                    Image(systemName: "wrench")
+                                        .resizable()
+                                        .frame(width: 25, height: 30)
+                                        .foregroundColor(.white)
+
+                                    Text("Tools")
+                                        .font(Font.custom("SanFrancisko", size: 14))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.bottom, 100)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensures elements fill available space
+        }
+    }
+}
+
+// Preview for UIFView
+struct UIFView_Previews: PreviewProvider {
+    static var previews: some View {
+        UIFView()
+    }
+}
+
